@@ -1,0 +1,35 @@
+name: "Login – wrong password shows error"
+description: "User attempts to sign in with a bad password and sees an error message."
+baseUrl: "http://localhost:3000"
+"tolerate":
+  httpErrors: true
+  httpStatusAllowlist: [401, 400]
+  httpUrlAllowlist:
+    - \/api\/billing\/usage-summary
+    - supabase\.co\/auth\/v1\/
+  consoleErrors: true
+  consolePatternAllowlist:
+    - '401 (Unauthorized)'
+    - '400 ()'
+steps:
+  - action: navigate
+    path: "/login"
+
+  - action: waitForSelector
+    selector: 'input[name="email"]'
+
+  - action: type
+    selector: 'input[name="email"]'
+    text: "user@example.com"
+
+  - action: type
+    selector: 'input[name="password"]'
+    text: "wrong-password"
+    pressEnter: true
+
+  - action: expectVisible
+    selector: 'text=/invalid|incorrect|error/i'
+    timeoutMs: 8000
+
+  - action: screenshot
+    name: "after-submit"

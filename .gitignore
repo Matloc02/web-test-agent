@@ -1,0 +1,5 @@
+﻿node_modules/
+reports/
+playwright-report/
+*.log
+*.trace.zip

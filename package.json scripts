@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "test:login": "ts-node src/runner.ts --test tests/login-wrong-password.yml --baseUrl http://localhost:3000 --outDir reports",
+    "test:headed": "ts-node src/runner.ts --test tests/login-wrong-password.yml --baseUrl http://localhost:3000 --outDir reports --headless=false --slowMo=250"
+  }
+}
