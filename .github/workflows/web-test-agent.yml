@@ -1,0 +1,36 @@
+name: web-test-agent
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npx playwright install --with-deps
+
+      # Use a hosted URL for CI (localhost won't work on GitHub runners)
+      - name: Run login (wrong password) test
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+        run: >
+          npx ts-node src/runner.ts
+          --test tests/login.yml
+          --baseUrl ${APP_URL:-https://your-staging-or-preview.example.com}
+          --outDir reports
+
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-test-agent-reports
+          path: reports
