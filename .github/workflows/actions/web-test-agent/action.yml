@@ -1,0 +1,25 @@
+name: Web Test Agent
+description: Run Playwright YAML tests against a URL
+inputs:
+  app-url: { required: true }
+  test-file: { required: true }
+  headless: { required: false, default: 'true' }
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with: { node-version: 20, cache: 'npm' }
+    - run: npm ci
+      shell: bash
+    - run: npx playwright install --with-deps
+      shell: bash
+    - run: >
+        npx ts-node src/runner.ts
+        --test "${{ inputs.test-file }}"
+        --baseUrl "${{ inputs.app-url }}"
+        --outDir reports
+        --headless "${{ inputs.headless }}"
+      shell: bash
+    - if: always()
+      uses: actions/upload-artifact@v4
+      with: { name: web-test-agent-reports, path: reports }
