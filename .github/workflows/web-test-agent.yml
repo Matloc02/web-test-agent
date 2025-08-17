@@ -1,36 +1,40 @@
-name: web-test-agent
+name: Web Test Agent
 
 on:
+  workflow_dispatch: {}     # run manually from the Actions tab
   push:
-  pull_request:
+    branches: [ main ]      # (optional) also run on pushes to main
+
+env:
+  # Use repo variable if set; otherwise default to SauceDemo
+  APP_URL: ${{ vars.APP_URL || 'https://www.saucedemo.com' }}
 
 jobs:
-  e2e:
+  run-tests:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
-      - run: npm ci
-      - run: npx playwright install --with-deps
+      - name: Install deps
+        run: npm ci
 
-      # Use a hosted URL for CI (localhost won't work on GitHub runners)
-      - name: Run login (wrong password) test
-        env:
-          APP_URL: ${{ secrets.APP_URL }}
-        run: >
-          npx ts-node src/runner.ts
-          --test tests/login.yml
-          --baseUrl ${APP_URL:-https://your-staging-or-preview.example.com}
-          --outDir reports
+      - name: Install Playwright (browsers & deps)
+        run: npx playwright install --with-deps
 
-      - if: always()
+      - name: Run web-test-agent
+        # Inside a shell script, use $APP_URL (shell env)
+        run: npx ts-node src/runner.ts --test tests/login.yml --baseUrl "$APP_URL" --outDir reports --headless true
+
+      - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
-          name: web-test-agent-reports
-          path: reports
+          name: reports
+          path: reports/
